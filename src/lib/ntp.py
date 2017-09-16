@@ -1,5 +1,5 @@
 import usocket as socket
-import struct
+import ustruct as struct
 
 # (date(2000, 1, 1) - date(1900, 1, 1)).days * 24*60*60
 NTP_DELTA = 3155673600
@@ -20,11 +20,11 @@ def time():
 
 # There's currently no timezone support in MicroPython, so
 # utime.localtime() will return UTC time (as if it was .gmtime())
-def settime():
+def settime(tz=0):
     t = time()
     import machine
     import utime
-    tm = utime.localtime(t)
+    tm = utime.localtime(t+tz*3600)
     tm = tm[0:3] + (0,) + tm[3:6] + (0,)
     machine.RTC().datetime(tm)
     return utime.localtime()

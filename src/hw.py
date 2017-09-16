@@ -1,0 +1,5 @@
+LED0 = 2
+LED1 = 16
+LED_SPI = 4
+LED_COUNT = 5
+BUTTON = 0
