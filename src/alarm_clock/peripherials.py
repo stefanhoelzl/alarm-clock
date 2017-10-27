@@ -10,7 +10,7 @@ def deinit():
     daylight.deinit()
     indicator.deinit()
 
-class Daylight(object):
+class Daylight:
     def __init__(self):
         self.np = neopixel.NeoPixel(machine.Pin(hw.LED_SPI), hw.LED_COUNT)
         self.set(0)
@@ -25,7 +25,7 @@ class Daylight(object):
 daylight = Daylight()
 
 
-class Indicator(object):
+class Indicator:
     def __init__(self):
         self.pin = machine.Pin(hw.LED0, machine.Pin.OUT)
         self.off()
@@ -41,7 +41,7 @@ class Indicator(object):
 indicator = Indicator()
 
 
-class Switch(object):
+class Switch:
     def __init__(self):
         self.pressed = False
         self.pin = machine.Pin(hw.BUTTON, machine.Pin.IN)
