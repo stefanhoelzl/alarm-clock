@@ -21,12 +21,13 @@ class Alarm:
     all = []
 
     @classmethod
-    def activated(cls, h, m, days=None, daylight_time=None):
+    def activated(cls, h, m, days=None, daylight_time=None, snooze_time=None):
         alarm = Alarm()
         alarm.hour = h
         alarm.minute = m
         alarm.days = days
         alarm.daylight_time = daylight_time
+        alarm.snooze_time = snooze_time
         alarm.activate()
         return alarm
 

@@ -76,7 +76,7 @@ class SnoozeButton:
         return False
 
     def __await__(self):
-        while not self.hcsr04.mm > self.TRIGGER_DISTANCE_MM:
+        while not self.triggered:
             yield from asyncio.sleep(0.1)
 
     __iter__ = __await__

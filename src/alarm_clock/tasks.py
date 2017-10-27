@@ -6,6 +6,7 @@ from settings import TIME_ZONE
 from alarm_clock.peripherials import daylight
 from alarm_clock.peripherials import switch
 from alarm_clock.peripherials import indicator
+from alarm_clock.peripherials import snooze_button
 
 from alarm_clock.alarm import Alarm
 
@@ -27,6 +28,12 @@ async def off_switch():
             if alarm.ringing:
                 alarm.off()
 
+async def snoozer():
+    while True:
+        await snooze_button
+        for alarm in Alarm.all:
+            if alarm.ringing:
+                alarm.snooze()
 
 async def time_update():
     while True:
