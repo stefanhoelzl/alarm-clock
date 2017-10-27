@@ -1,3 +1,4 @@
+import math
 import uasyncio as asyncio
 
 import machine
@@ -14,13 +15,34 @@ def deinit():
 
 
 class Daylight:
-    def __init__(self):
+    @staticmethod
+    def kelvin_to_rgb(kelvin):
+        temp = kelvin / 100
+        if temp <= 66:
+            red = 255
+            green = 99.4708025861 * math.log(temp) - 161.1195681661
+            if temp <= 19:
+                blue = 0
+            else:
+                blue = 138.5177312231 * math.log(temp-10) - 305.0447927307
+        else:
+            red = 329.698727446 * math.pow(temp - 60, -0.1332047592)
+            green = 288.1221695283 * math.pow(temp - 60, -0.0755148492)
+            blue = 255
+        return (
+            min(255, max(0, red)),
+            min(255, max(0, green)),
+            min(255, max(0, blue))
+        )
+
+    def __init__(self, kelvin=5300):
         self.np = neopixel.NeoPixel(machine.Pin(hw.LED_SPI), hw.LED_COUNT)
+        self.rgb = Daylight.kelvin_to_rgb(kelvin)
         self.set(0)
 
     def set(self, i):
-        i = int(255*i)
-        self.np.fill((i, i, i))
+        r, g, b = tuple(map(lambda x: int(x*i), self.rgb))
+        self.np.fill((r, g, b))
         self.np.write()
 
     def deinit(self):
