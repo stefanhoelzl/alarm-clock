@@ -5,10 +5,13 @@ import neopixel
 
 import hw
 
+from .hal import HCSR04
+
 
 def deinit():
     daylight.deinit()
     indicator.deinit()
+
 
 class Daylight:
     def __init__(self):
@@ -57,3 +60,24 @@ class Switch:
 
     __iter__ = __await__
 switch = Switch()
+
+
+class SnoozeButton:
+    TRIGGER_DISTANCE_MM = 40
+
+    def __init__(self):
+        self.hcsr04 = HCSR04(hw.HCSR04_ECHO, hw.HCSR04_TRIGGER)
+
+    @property
+    def triggered(self):
+        mm = self.hcsr04.mm
+        if mm and mm > self.TRIGGER_DISTANCE_MM:
+            return True
+        return False
+
+    def __await__(self):
+        while not self.hcsr04.mm > self.TRIGGER_DISTANCE_MM:
+            yield from asyncio.sleep(0.1)
+
+    __iter__ = __await__
+snooze_button = SnoozeButton()
