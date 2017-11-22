@@ -56,10 +56,10 @@ class Indicator:
         self.off()
 
     def on(self):
-        self.pin.off()
+        self.pin.value(True)
 
     def off(self):
-        self.pin.on()
+        self.pin.value(False)
 
     def deinit(self):
         self.off()
@@ -92,14 +92,14 @@ class SnoozeButton:
 
     @property
     def triggered(self):
-        mm = self.hcsr04.mm
-        if mm and mm > self.TRIGGER_DISTANCE_MM:
+        mm = (self.hcsr04.mm, self.hcsr04.mm)
+        if all(mm) and 0.5*sum(mm) < self.TRIGGER_DISTANCE_MM:
             return True
         return False
 
     def __await__(self):
         while not self.triggered:
-            yield from asyncio.sleep(0.1)
+            yield from asyncio.sleep(0)
 
     __iter__ = __await__
 snooze_button = SnoozeButton()

@@ -1,7 +1,7 @@
-import pytest
 from unittest.mock import patch, PropertyMock
+import pytest
 
-from alarm_clock.alarm import Alarm
+from apps.alarm_clock.alarm import Alarm
 
 
 def time(h, m):

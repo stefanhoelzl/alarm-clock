@@ -1,14 +1,19 @@
-import ntp
 import uasyncio as asyncio
 
-from settings import TIME_ZONE
+try:
+    from mocks.peripherials import daylight
+    from mocks.peripherials import indicator
+    from mocks.peripherials import snooze_button
+    from mocks.peripherials import switch
+except ImportError:
+    from .peripherials import daylight
+    from .peripherials import indicator
+    from .peripherials import snooze_button
+    from .peripherials import switch
 
-from alarm_clock.peripherials import daylight
-from alarm_clock.peripherials import switch
-from alarm_clock.peripherials import indicator
-from alarm_clock.peripherials import snooze_button
 
-from alarm_clock.alarm import Alarm
+from apps.alarm_clock.alarm import Alarm
+
 
 async def alarm_handler():
     while True:
@@ -34,8 +39,3 @@ async def snoozer():
         for alarm in Alarm.all:
             if alarm.ringing:
                 alarm.snooze()
-
-async def time_update():
-    while True:
-        await asyncio.sleep(3600)
-        ntp.settime(tz=TIME_ZONE)

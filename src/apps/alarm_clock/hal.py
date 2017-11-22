@@ -1,4 +1,5 @@
-import machine, time
+import machine
+import utime as time
 from machine import Pin
 
 

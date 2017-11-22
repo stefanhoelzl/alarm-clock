@@ -1,7 +1,4 @@
-try:
-    import utime as time
-except ImportError:
-    import time
+import time
 
 
 def seconds(hours, minutes):
