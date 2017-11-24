@@ -1,41 +1,4 @@
-def resolve_dependencies(apps):
-    order = []
-    unresolvable = {}
-    unfulfilled = {}
-
-    deps = {}
-
-    repeat = True
-    while repeat:
-        repeat = False
-        for app_name, info in apps.items():
-            if app_name not in order and app_name not in unresolvable:
-                if app_name not in deps:
-                    app = info["cls"]
-                    requires = tuple(((r, True) for r in app.requires))
-                    optional = tuple(((r, False) for r in app.optional))
-                    deps[app_name] = [(a, t) for (a, t) in requires + optional
-                                      if a not in order]
-                else:
-                    unresolved = [(a, t)
-                                  for (a, t) in deps.get(app_name, [])
-                                  if a not in order]
-                    if unresolved == deps[app_name]:
-                        unresolvable[app_name] = [a for (a, r) in deps[app_name]
-                                                  if r]
-                        unfulfilled[app_name] = [a for (a, r) in deps[app_name]
-                                                 if not r]
-                        if not unfulfilled[app_name]:
-                            del unfulfilled[app_name]
-                        deps[app_name] = None
-                    else:
-                        deps[app_name] = unresolved
-                if not deps[app_name] and not len(unresolvable.get(app_name,
-                                                                   [])):
-                    order.append(app_name)
-                else:
-                    repeat = True
-    return order, unresolvable, unfulfilled
+from .dependency_resolver import resolve_dependencies
 
 
 class AppServer:
@@ -63,7 +26,6 @@ class AppServer:
                 AppServer.initialized.append(app_name)
             except Exception as e:
                 AppServer.init_failed[app_name] = e
-        print(AppServer.initialized)
 
     @staticmethod
     async def call_safe(app_name, task):

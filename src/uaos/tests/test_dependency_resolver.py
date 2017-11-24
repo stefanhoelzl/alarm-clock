@@ -1,5 +1,6 @@
 import pytest
-from uaos.app import App, resolve_dependencies
+from uaos.app import App
+from uaos.dependency_resolver import resolve_dependencies
 
 
 class AppMock:
@@ -88,3 +89,15 @@ class TestResolveDependencies:
         assert "App1" in unresolved
         assert "App2" in unresolved
         assert "App3" in unresolved
+
+
+class TestCustom:
+    def test_0(self):
+        register = create_app_register((("Network", {}),
+                                        ("NTP", {"requires": ["Network"]}),
+                                        ("Apify", {"requires": ["Network"]}),
+                                        ("AlarmClock", {"requires": ['Apify',
+                                                                     'NTP']}),
+                                        ))
+        order, unresolved, unfulfilled = resolve_dependencies(register)
+        assert len(order) == 4
