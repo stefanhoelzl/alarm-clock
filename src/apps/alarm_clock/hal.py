@@ -4,14 +4,13 @@ from machine import Pin
 
 
 class HCSR04:
-    MAX_M = 1
     M_PER_SEC = 343
 
-    def __init__(self, echo_pin, trigger_pin):
+    def __init__(self, echo_pin, trigger_pin, max_m=1):
         self.trigger = Pin(trigger_pin, mode=Pin.OUT, pull=None)
         self.trigger.value(0)
         self.echo = Pin(echo_pin, mode=Pin.IN, pull=None)
-        self.timeout_us = int((self.MAX_M/self.M_PER_SEC)*1000*1000)
+        self.timeout_us = int((max_m/self.M_PER_SEC)*1000*1000)
 
     def measure(self):
         self.trigger.value(1)

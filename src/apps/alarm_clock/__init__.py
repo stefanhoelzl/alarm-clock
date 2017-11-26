@@ -4,15 +4,9 @@ from uaos import App
 from .alarm import Alarm
 
 try:
-    from mocks.peripherials import daylight
-    from mocks.peripherials import indicator
-    from mocks.peripherials import snooze_button
-    from mocks.peripherials import switch
+    from mocks import peripherials
 except ImportError:
-    from .peripherials import daylight
-    from .peripherials import indicator
-    from .peripherials import snooze_button
-    from .peripherials import switch
+    from . import peripherials
 
 from apps.alarm_clock.alarm import Alarm
 
@@ -52,35 +46,30 @@ class AlarmClock(App):
         for a in Alarm.all:
             if a.ringing:
                 a.snooze()
-        indicator.off()
+        peripherials.indicator.off()
 
     def off(self):
         for a in Alarm.all:
-            if a.ringing:
+            if a.ringing or a.snoozing:
                 a.off()
-        indicator.off()
+        peripherials.indicator.off()
+        peripherials.switch.callback = None
 
     def on(self):
-        self.loop.create_task(self.wait_for_off())
+        peripherials.switch.callback = self.off
         self.loop.create_task(self.wait_for_snooze())
-        indicator.on()
+        peripherials.indicator.on()
 
     async def __call__(self):
         while True:
             if self.ringing:
                 self.on()
-            daylight.set(self.daylight)
+            peripherials.daylight.set(self.daylight)
             await asyncio.sleep(1)
-
-    @singelton_task("OFF")
-    async def wait_for_off(self):
-        while not switch.pressed:
-            await asyncio.sleep(0.01)
-        self.off()
 
     @singelton_task("SNOOZE")
     async def wait_for_snooze(self):
-        while (not snooze_button.triggered) and self.ringing:
+        while (not peripherials.snooze_button.triggered) and self.ringing:
             await asyncio.sleep(0.1)
         if self.ringing:
             self.snooze()

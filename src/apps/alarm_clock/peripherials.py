@@ -60,10 +60,6 @@ class Indicator:
         self.pin = machine.Pin(hw.LED0, machine.Pin.OUT)
         self.off()
 
-    @property
-    def is_on(self):
-        return self.pin.value()
-
     def on(self):
         self.pin.value(True)
 
@@ -77,12 +73,13 @@ indicator = Indicator()
 
 class Switch:
     def __init__(self):
-        self.pressed = False
+        self.callback = None
         self.pin = machine.Pin(hw.BUTTON, machine.Pin.IN)
         self.pin.irq(handler=self.press, trigger=machine.Pin.IRQ_FALLING)
 
     def press(self, p):
-        self.pressed = True
+        if self.callback:
+            self.callback()
 
 switch = Switch()
 
@@ -91,7 +88,7 @@ class SnoozeButton:
     TRIGGER_DISTANCE_MM = 40
 
     def __init__(self):
-        self.hcsr04 = HCSR04(hw.HCSR04_ECHO, hw.HCSR04_TRIGGER)
+        self.hcsr04 = HCSR04(hw.HCSR04_ECHO, hw.HCSR04_TRIGGER, max_m=0.1)
 
     @property
     def triggered(self):
