@@ -4,21 +4,8 @@ from apps import apify
 from uaos import App
 
 
-class Event:
-    CMD = None
-
-    def __init__(self, content):
-        self.done = False
-        self.cmd = content.strip()
-        self.returns = None
-
-
-class ExecEvent(Event):
-    pass
-
-
-class EvalEvent(Event):
-    pass
+CMD = None
+RET = None
 
 
 class Repl(App):
@@ -27,36 +14,32 @@ class Repl(App):
     events = []
 
     async def __call__(self):
+        global CMD, RET
         while True:
-            await asyncio.sleep(0)
-            if Repl.events:
-                event = Repl.events.pop(0)
-                try:
-                    print("1")
-                    if isinstance(event, ExecEvent):
-                        event.returns = exec(event.cmd)
-                    elif isinstance(event, EvalEvent):
-                        event.returns = eval(event.cmd)
-                except Exception as e:
-                    event.returns = str(e)
-                finally:
-                    event.done = True
+            await asyncio.sleep(0.01)
+            if CMD:
+                if CMD[0] == "exec":
+                    RET = exec(CMD[1])
+                elif CMD[0] == "eval":
+                    RET = eval(CMD[1])
+                CMD = None
 
 Repl.register()
 
 
-async def do(event):
-    Repl.events.append(event)
-    while not event.done:
-        await asyncio.sleep(0)
-    return event.returns
+async def do(f, content):
+    global CMD
+    CMD = f, content
+    while CMD:
+        await asyncio.sleep(0.01)
+    return RET
 
 
 @apify.route(b'/repl/exec')
 async def execute(content):
-    return await do(ExecEvent(content))
+    return await do("exec", content)
 
 
 @apify.route(b'/repl/eval')
 async def evaluate(content):
-    return await do(EvalEvent(content))
+    return await do("eval", content)

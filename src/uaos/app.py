@@ -62,11 +62,6 @@ class App:
     not_mandatory = False
 
     @classmethod
-    def dependencies(cls):
-        return tuple(((r, True) for r in cls.requires)) \
-               + tuple(((r, False) for r in cls.optional))
-
-    @classmethod
     def register(cls):
         AppServer.__registered__[cls.__name__] = {
             "cls": cls,
