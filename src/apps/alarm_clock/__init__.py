@@ -1,4 +1,3 @@
-import utime as time
 import uasyncio as asyncio
 
 from uaos import App
@@ -36,12 +35,6 @@ class AlarmClock(App):
         super().__init__()
         self.loop = asyncio.get_event_loop()
         self.running_tasks = []
-
-        l = time.localtime()
-        h = l[Alarm.HOUR]
-        m = l[Alarm.MINUTE] + 1
-        a = Alarm(h, m, daylight_time=30, snooze_time=10)
-        print("Time to ring:", (a.time - time.time()))
 
     @property
     def ringing(self):
