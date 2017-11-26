@@ -17,29 +17,20 @@ class Alarm:
 
     all = []
 
-    @classmethod
-    def activated(cls, h, m, days=None, daylight_time=None, snooze_time=None):
-        alarm = Alarm()
-        alarm.hour = h
-        alarm.minute = m
-        alarm.days = days
-        alarm.daylight_time = daylight_time
-        alarm.snooze_time = snooze_time
-        alarm.activate()
-        return alarm
-
-    def __init__(self):
+    def __init__(self, h=0, m=0, days=None, daylight_time=None, snooze_time=0):
         self.enabled = False
-        self.daylight_time = None
-        self.snooze_time = 0
-        self.hour = 0
-        self.minute = 0
-        self.days = None
+        self.daylight_time = daylight_time
+        self.snooze_time = snooze_time
+        self.hour = h
+        self.minute = m
+        self.days = days
 
         self.time = 0
         self.snooze_counter = 0
 
         Alarm.all.append(self)
+
+        self.activate()
 
     @property
     def daylight(self):
