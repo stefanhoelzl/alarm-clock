@@ -15,6 +15,8 @@ def deinit():
 
 
 class Daylight:
+    DEFAULT_KELVIN = 5300
+
     @staticmethod
     def kelvin_to_rgb(kelvin):
         temp = kelvin / 100
@@ -35,15 +37,18 @@ class Daylight:
             min(255, max(0, blue))
         )
 
-    def __init__(self, kelvin=5300):
+    def __init__(self):
         self.np = neopixel.NeoPixel(machine.Pin(hw.LED_SPI), hw.LED_COUNT)
-        self.rgb = Daylight.kelvin_to_rgb(kelvin)
+        self.last = None
         self.set(0)
 
-    def set(self, i):
-        r, g, b = tuple(map(lambda x: int(x*i), self.rgb))
-        self.np.fill((r, g, b))
-        self.np.write()
+    def set(self, i, kelvin=DEFAULT_KELVIN):
+        if self.last is None or (i, kelvin) != self.last:
+            self.last = (i, kelvin)
+            rgb = tuple(map(lambda x: int(x*i),
+                            Daylight.kelvin_to_rgb(kelvin)))
+            self.np.fill(rgb)
+            self.np.write()
 
     def deinit(self):
         self.set(0)
@@ -54,6 +59,10 @@ class Indicator:
     def __init__(self):
         self.pin = machine.Pin(hw.LED0, machine.Pin.OUT)
         self.off()
+
+    @property
+    def is_on(self):
+        return self.pin.value()
 
     def on(self):
         self.pin.value(True)
@@ -75,12 +84,6 @@ class Switch:
     def press(self, p):
         self.pressed = True
 
-    def __await__(self):
-        while not self.pressed:
-            yield from asyncio.sleep(0)
-        self.pressed = False
-
-    __iter__ = __await__
 switch = Switch()
 
 
@@ -97,9 +100,4 @@ class SnoozeButton:
             return True
         return False
 
-    def __await__(self):
-        while not self.triggered:
-            yield from asyncio.sleep(0)
-
-    __iter__ = __await__
 snooze_button = SnoozeButton()
