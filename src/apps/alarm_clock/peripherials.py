@@ -38,7 +38,8 @@ class Daylight:
         )
 
     def __init__(self):
-        self.np = neopixel.NeoPixel(machine.Pin(hw.LED_SPI), hw.LED_COUNT)
+        self.np = neopixel.NeoPixel(machine.Pin(hw.LED_SPI), hw.LED_COUNT,
+                                    timing=True)
         self.last = None
         self.set(0)
 

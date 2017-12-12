@@ -1,7 +1,5 @@
-import uasyncio as asyncio
-
-from uaos import App
 from .alarm import Alarm
+from .api import *
 
 try:
     from mocks import peripherials
@@ -28,16 +26,20 @@ class AlarmClockApp(App):
         self.alarms = {}
         self.loop = asyncio.get_event_loop()
         self.running_tasks = []
+        peripherials.switch.callback = self.off
 
-    def create(self, hour, minute, days=None, dl_time=None, snooze=None):
-        alarm = Alarm(hour, min, days=days,
-                      daylight_time=dl_time, snooze_time=snooze)
+    def create(self, hour, minute, days=None,
+               dl_mode=None, dl_time=None,
+               snooze=None):
+        al = Alarm(hour, minute, days=days,
+                   daylight_time=dl_time, daylight_mode=dl_mode,
+                   snooze_time=snooze)
         for aid in range(len(self.alarms)):
             if aid not in self.alarms:
                 break
         else:
             aid = len(self.alarms)
-        self.alarms[aid] = alarm
+        self.alarms[aid] = al
 
     def delete(self, aid):
         del self.alarms[aid]
@@ -48,7 +50,9 @@ class AlarmClockApp(App):
 
     @property
     def daylight(self):
-        return max((a.daylight for a in self.alarms.values()))
+        if self.alarms:
+            return max((a.daylight for a in self.alarms.values()))
+        return 0
 
     @property
     def snoozing(self):
@@ -57,25 +61,20 @@ class AlarmClockApp(App):
     def snooze(self):
         for a in self.alarms.values():
             a.snooze()
-        peripherials.indicator.off()
 
     def off(self):
         for a in self.alarms.values():
             a.off()
-        peripherials.indicator.off()
-        peripherials.switch.callback = None
-
-    def on(self):
-        peripherials.switch.callback = self.off
-        self.loop.create_task(self.wait_for_snooze())
-        peripherials.indicator.on()
 
     async def __call__(self):
         while True:
             for a in self.alarms.values():
                 a.update()
             if self.ringing:
-                self.on()
+                self.loop.create_task(self.wait_for_snooze())
+                peripherials.indicator.on()
+            else:
+                peripherials.indicator.off()
             peripherials.daylight.set(self.daylight)
             await asyncio.sleep(1)
 

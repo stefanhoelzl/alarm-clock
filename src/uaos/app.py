@@ -67,3 +67,7 @@ class App:
             "cls": cls,
             "instance": None
         }
+
+    @staticmethod
+    def get_app(app):
+        return AppServer.__registered__[app]["instance"]

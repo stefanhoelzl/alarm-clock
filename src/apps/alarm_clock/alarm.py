@@ -40,16 +40,16 @@ class Alarm(StateMachine):
         return self.time - time.time()
 
     def snooze(self):
-        self.transition(Snooze)
+        self.transition(Snooze())
 
     def off(self):
-        self.transition(Off)
+        self.transition(Off())
 
     def enable(self):
-        self.transition(Enable)
+        self.transition(Enable())
 
     def disable(self):
-        self.transition(Disable)
+        self.transition(Disable())
 
     def update(self):
         self.transition(Update(time.time()))

@@ -44,6 +44,8 @@ class Enabled(AlarmState):
 
 
 class Daylight(Enabled):
+    disable = Enabled.disable
+
     @event(Off)
     def off(self, e):
         if self.alarm.days:
@@ -57,6 +59,10 @@ class Daylight(Enabled):
 
 
 class Ringing(Daylight):
+    off = Daylight.off
+    disable = Enabled.disable
+
+
     @event(Snooze)
     def snooze(self, e):
         if self.alarm.snooze_time:
@@ -68,6 +74,9 @@ class Snoozing(Daylight):
         super().__init__(alarm, *args, **kwargs)
         self.alarm.snooze_counter += 1
         self.alarm.snooze_until = self.alarm.time + self.alarm.snooze_counter*self.alarm.snooze_time
+
+    off = Daylight.off
+    disable = Enabled.disable
 
     @event(Update)
     def update(self, e):

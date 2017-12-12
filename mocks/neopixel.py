@@ -1,5 +1,5 @@
 class NeoPixel:
-    def __init__(self, pin, count):
+    def __init__(self, pin, count, timing=True):
         self.pin = pin
         self.count = count
         self.r = 0

@@ -112,7 +112,6 @@ class TestDaylight(StateTest):
         Transition(Off(), AlarmMock(days=(1,)), Enabled),
         Transition(Update(100), AlarmMock(time=100), Ringing),
         Transition(Update(101), AlarmMock(time=100), Ringing),
-
     )
 
     @property
@@ -153,3 +152,8 @@ class TestSnoozing(StateTest):
         a = AlarmMock(snooze_counter=100, time=0)
         self.State(a)
         assert a.snooze_counter == 101
+
+    def test_calcSnoozeUntil(self):
+        a = AlarmMock(snooze_time=10, time=0)
+        self.State(a)
+        assert a.snooze_until == 10

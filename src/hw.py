@@ -1,7 +1,7 @@
 LED0 = 2
 
 LED_SPI = 17
-LED_COUNT = 5
+LED_COUNT = 60
 
 BUTTON = 0
 
