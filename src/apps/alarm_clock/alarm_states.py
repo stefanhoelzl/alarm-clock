@@ -6,12 +6,9 @@ from .alarm_events import *
 
 
 class AlarmState(State):
-    def __init__(self, alarm, *args, **kwargs):
-        super().__init__()
-        self.alarm = alarm
-
-    def to(self, state):
-        return state(self.alarm)
+    def __init__(self, sm):
+        self.alarm = sm
+        super().__init__(sm)
 
 
 class Disabled(AlarmState):
@@ -21,65 +18,59 @@ class Disabled(AlarmState):
 
     @event(Enable)
     def enable(self, e):
-        return self.to(Enabled)
+        return Enabled
 
 
 class Enabled(AlarmState):
-    def __new__(cls, *args, **kwargs):
-        return Inactive(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if type(self) == Enabled:
+            self.alarm.time = next_time(self.alarm.hour, self.alarm.minute,
+                                        days=self.alarm.days,
+                                        current_time=self.alarm.time)
+            self.alarm.snooze_counter = 0
+
+    @event(Update)
+    def update(self, e):
+        if self.alarm.daylight_mode \
+                and e.time >= (self.alarm.time - self.alarm.daylight_time):
+            return Daylight
+        elif e.time >= self.alarm.time:
+            return Ringing
 
     @event(Disable)
     def disable(self, e):
-        return self.to(Disabled)
-
-
-class Inactive(Enabled):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.alarm.time = next_time(self.alarm.hour, self.alarm.minute,
-                                    days=self.alarm.days)
-
-    @event(Update)
-    def update(self, e):
-        if time.time() > (self.alarm.time - self.alarm.daylight_time):
-            return self.to(Daylight)
+        return Disabled
 
 
 class Daylight(Enabled):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    @property
-    def daylight(self):
-        daylight_time = self.alarm.daylight_time
-        daylight = (daylight_time - self.alarm.time_left) / daylight_time
-        return max(0.0, min(1.0, daylight))
-
-    @event(Update)
-    def update(self, e):
-        if time.time() > self.alarm.time:
-            return self.to(Ringing)
-
-
-class Ringing(Daylight):
     @event(Off)
     def off(self, e):
         if self.alarm.days:
-            return self.to(Enabled)
-        return self.to(Disabled)
-
-    @event(Snooze)
-    def snooze(self, e):
-        return self.to(Snooze)
-
-
-class Snoozing(Ringing):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.snooze_until = time.time() + self.alarm.snooze_time
+            return Enabled
+        return Disabled
 
     @event(Update)
     def update(self, e):
-        if time.time() > self.snooze_until:
-            return self.to(Ringing)
+        if e.time >= self.alarm.time:
+            return Ringing
+
+
+class Ringing(Daylight):
+    @event(Snooze)
+    def snooze(self, e):
+        if self.alarm.snooze_time:
+            return Snoozing
+
+
+class Snoozing(Daylight):
+    def __init__(self, alarm, *args, **kwargs):
+        super().__init__(alarm, *args, **kwargs)
+        self.alarm.snooze_counter += 1
+        self.alarm.snooze_until = self.alarm.time + self.alarm.snooze_counter*self.alarm.snooze_time
+
+    @event(Update)
+    def update(self, e):
+        if e.time >= self.alarm.snooze_until:
+            return Ringing
 

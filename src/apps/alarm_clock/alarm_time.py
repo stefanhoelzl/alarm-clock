@@ -10,10 +10,6 @@ LOCALTIME_IDX_WEEKDAY = 6
 LOCALTIME_IDX_YEARDAY = 7
 
 
-def seconds(hours, minutes):
-    return (hours*60 + minutes)*60
-
-
 def next_time(hour, minute, days=None, current_time=None):
     if current_time is None:
         current_time = time.time()
@@ -23,12 +19,14 @@ def next_time(hour, minute, days=None, current_time=None):
     t[LOCALTIME_IDX_SECOND] = 0
     at = time.mktime(tuple(t))
     if at <= current_time:
-        at += seconds(24, 0)
+        t[LOCALTIME_IDX_DAY] += 1
+        at = time.mktime(tuple(t))
     if days is not None:
         current_alarm_day = list(time.localtime(at))[LOCALTIME_IDX_WEEKDAY]
         next_day = get_next_weekday(current_alarm_day, days)
         diff = diff_between_weekdays(current_alarm_day, next_day)
-        at += diff*seconds(24, 0)
+        t[LOCALTIME_IDX_DAY] += diff
+        at = time.mktime(tuple(t))
     return at
 
 

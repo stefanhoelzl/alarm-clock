@@ -6,19 +6,25 @@ class EventHandler:
 
 def event(*events):
     def decorator(event_handler):
-        return EventHandler(events, event_handler)
+        def wrapper(self, ev):
+            new_state = event_handler(self, ev)
+            if not new_state or type(self) == new_state:
+                return None
+            return new_state(self.state_machine)
+        return EventHandler(events, wrapper)
     return decorator
 
 
 class BaseState:
-    def __call__(self, event):
+    def __call__(self, ev):
         return self
 
 
 class State(BaseState):
     EventHandler = {}
 
-    def __init__(self):
+    def __init__(self, sm):
+        self.state_machine = sm
         self.register_event_handler()
 
     def register_event_handler(self):
@@ -27,26 +33,25 @@ class State(BaseState):
             for attr_name in dir(self):
                 attr = getattr(self, attr_name)
                 if isinstance(attr, EventHandler):
-                    for event in attr.events:
-                        State.EventHandler[self.__class__][event] = attr.handler
+                    for ev in attr.events:
+                        State.EventHandler[self.__class__][ev] = attr.handler
 
-    def __call__(self, event):
-        ret = None
-        if self.__class__ in State.EventHandler:
-            if event.__class__ in State.EventHandler[self.__class__]:
-                ret = State.EventHandler[self.__class__][event.__class__](self,
-                                                                          event)
-        if ret:
-            return ret
-        return super().__call__(event)
+    def __call__(self, ev):
+        ret = State.EventHandler.get(self.__class__, {})\
+                                .get(ev.__class__, lambda s, e: None)(self, ev)
+        if ret is None:
+            return super().__call__(event)
+        elif not isinstance(ret, State):
+            raise ValueError("State must return None or another state")
+        return ret
 
 
 class StateMachine:
-    def __init__(self):
-        self.state = None
+    def __init__(self, initial_state):
+        self.state = initial_state
 
-    def transition(self, e):
-        self.state = self.state(e)
+    def transition(self, ev):
+        self.state = self.state(ev)
 
     def __eq__(self, other):
-        return isinstance(self, other)
+        return isinstance(self.state, other)

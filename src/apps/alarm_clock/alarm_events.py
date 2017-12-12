@@ -1,6 +1,5 @@
 class Event:
-    def __init__(self, alarm):
-        self.alarm = alarm
+    pass
 
 
 class Enable(Event):
@@ -24,4 +23,6 @@ class DaylightOff(Event):
 
 
 class Update(Event):
-    pass
+    def __init__(self, time=0):
+        super().__init__()
+        self.time = time

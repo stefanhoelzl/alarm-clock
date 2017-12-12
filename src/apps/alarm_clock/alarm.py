@@ -2,20 +2,29 @@ from .alarm_states import *
 
 
 class Alarm(StateMachine):
-    def __init__(self, h=0, m=0, days=None, daylight_time=None, snooze_time=0):
-        super().__init__()
+    INITIAL_STATE = Enabled
+
+    def __init__(self, h=0, m=0, days=None,
+                 daylight_mode=None, daylight_time=None,
+                 snooze_time=0):
         self.hour = h
         self.minute = m
         self.time = None
         self.days = days
+        self.daylight_mode = daylight_mode
         self.daylight_time = daylight_time
         self.snooze_time = snooze_time
-        self.enable()
+        self.snooze_counter = 0
+        super().__init__(Enabled(self))
 
     @property
     def daylight(self):
         if self == Daylight:
-            return self.state.daylight
+            daylight_time = self.daylight_time
+            if self.daylight_mode:
+                daylight = (
+                           daylight_time - self.time_left) / daylight_time
+                return max(0.0, min(1.0, daylight))
         return 0
 
     @property
@@ -43,4 +52,4 @@ class Alarm(StateMachine):
         self.transition(Disable)
 
     def update(self):
-        self.transition(Update)
+        self.transition(Update(time.time()))
