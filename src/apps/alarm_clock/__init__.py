@@ -8,8 +8,6 @@ try:
 except ImportError:
     from . import peripherials
 
-from apps.alarm_clock.alarm import Alarm
-
 
 def singelton_task(name):
     def decorator(task):
@@ -22,36 +20,48 @@ def singelton_task(name):
     return decorator
 
 
-class AlarmClock(App):
+class AlarmClockApp(App):
     requires = ['Apify', 'NTP']
 
     def __init__(self):
         super().__init__()
+        self.alarms = {}
         self.loop = asyncio.get_event_loop()
         self.running_tasks = []
 
+    def create(self, hour, minute, days=None, dl_time=None, snooze=None):
+        alarm = Alarm(hour, min, days=days,
+                      daylight_time=dl_time, snooze_time=snooze)
+        for aid in range(len(self.alarms)):
+            if aid not in self.alarms:
+                break
+        else:
+            aid = len(self.alarms)
+        self.alarms[aid] = alarm
+
+    def delete(self, aid):
+        del self.alarms[aid]
+
     @property
     def ringing(self):
-        return any((a.ringing for a in Alarm.all))
+        return any((a.ringing for a in self.alarms.values()))
 
     @property
     def daylight(self):
-        return max((a.daylight for a in Alarm.all))
+        return max((a.daylight for a in self.alarms.values()))
 
     @property
     def snoozing(self):
-        return any((a.snoozing for a in Alarm.all))
+        return any((a.snoozing for a in self.alarms.values()))
 
     def snooze(self):
-        for a in Alarm.all:
-            if a.ringing:
-                a.snooze()
+        for a in self.alarms.values():
+            a.snooze()
         peripherials.indicator.off()
 
     def off(self):
-        for a in Alarm.all:
-            if a.ringing or a.snoozing:
-                a.off()
+        for a in self.alarms.values():
+            a.off()
         peripherials.indicator.off()
         peripherials.switch.callback = None
 
@@ -62,6 +72,8 @@ class AlarmClock(App):
 
     async def __call__(self):
         while True:
+            for a in self.alarms.values():
+                a.update()
             if self.ringing:
                 self.on()
             peripherials.daylight.set(self.daylight)
@@ -74,4 +86,4 @@ class AlarmClock(App):
         if self.ringing:
             self.snooze()
 
-AlarmClock.register()
+AlarmClockApp.register()
