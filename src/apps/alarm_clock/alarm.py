@@ -17,6 +17,19 @@ class Alarm(StateMachine):
         self.snooze_counter = 0
         super().__init__(Enabled(self))
 
+    def as_dict(self):
+        return {
+            "hour": self.hour,
+            "minute": self.minute,
+            "days": self.days,
+            "daylight_mode": self.daylight_mode,
+            "daylight_time": self.daylight_time,
+            "snooze_time": self.snooze_time,
+            "daylight": self.daylight,
+            "ringing": self.ringing,
+            "snoozing": self.snoozing,
+        }
+
     @property
     def daylight(self):
         if self == Daylight:

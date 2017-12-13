@@ -1,4 +1,5 @@
-from time import time
+import machine
+import utime
 
 import uasyncio as asyncio
 import usocket as socket
@@ -38,13 +39,9 @@ class NTP(App):
         val = struct.unpack("!I", msg[40:44])[0]
         return val - NTP.NTP_DELTA
 
-    # There's currently no timezone support in MicroPython, so
-    # utime.localtime() will return UTC time (as if it was .gmtime())
     @staticmethod
     def settime(tz=0):
-        t = time()
-        import machine
-        import utime
+        t = NTP.time()
         tm = utime.localtime(t+tz*3600)
         tm = tm[0:3] + (0,) + tm[3:6] + (0,)
         machine.RTC().datetime(tm)

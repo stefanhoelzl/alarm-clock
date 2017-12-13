@@ -4,7 +4,9 @@ from uaos import App
 from apps import apify
 
 
-@apify.route("/alarm/all")
+@apify.route(b"/alarm/all")
 async def get_alarms(content):
-    await asyncio.sleep(0)
-    return App.get_app("AlarmClockApp").alarms
+    ret = {}
+    for aid, alarm in App.get_app("AlarmClockApp").alarms.items():
+        ret[str(aid)] = alarm.as_dict()
+    return ret
