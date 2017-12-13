@@ -25,6 +25,7 @@ class AppServer:
                 app["instance"] = app["cls"]()
                 AppServer.initialized.append(app_name)
             except Exception as e:
+                print("init failed", app_name, e)
                 AppServer.init_failed[app_name] = e
 
     @staticmethod

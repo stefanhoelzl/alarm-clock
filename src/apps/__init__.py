@@ -4,4 +4,3 @@ from apps import apify
 from apps import alarm_clock
 from apps import repl
 from apps import gc
-from apps import alarm_clock_setter

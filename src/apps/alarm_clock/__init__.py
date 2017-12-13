@@ -41,10 +41,13 @@ class AlarmClockApp(App):
 
     def load(self):
         self.alarms = {}
-        with open(self.storage, "r") as f:
-            alarm_dicts = json.loads(f.read())
-            for alarm_dict in alarm_dicts.values():
-                self.create(**alarm_dict)
+        try:
+            with open(self.storage, "r") as f:
+                alarm_dicts = json.loads(f.read())
+                for alarm_dict in alarm_dicts.values():
+                    self.create(**alarm_dict)
+        except:
+            pass
 
     def as_dict(self, state=True):
         ret = {}
@@ -54,10 +57,10 @@ class AlarmClockApp(App):
 
     def create(self, hour, minute, days=None,
                daylight_mode=None, daylight_time=None,
-               snooze_time=None):
+               snooze_time=None, enabled=True):
         al = Alarm(hour, minute, days=days,
                    daylight_time=daylight_time, daylight_mode=daylight_mode,
-                   snooze_time=snooze_time)
+                   snooze_time=snooze_time, enabled=enabled)
         for aid in range(len(self.alarms)):
             if aid not in self.alarms:
                 break
