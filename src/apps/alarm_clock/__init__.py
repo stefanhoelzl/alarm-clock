@@ -1,3 +1,5 @@
+import ujson as json
+
 from .alarm import Alarm
 from .api import *
 
@@ -21,12 +23,34 @@ def singelton_task(name):
 class AlarmClockApp(App):
     requires = ['Apify', 'NTP']
 
+    storage = "/storage/alarm_clock.json"
+    auto_store = True
+
     def __init__(self):
         super().__init__()
         self.alarms = {}
         self.loop = asyncio.get_event_loop()
         self.running_tasks = []
         peripherials.switch.callback = self.off
+        if self.auto_store:
+            self.load()
+
+    def store(self):
+        with open(self.storage, "w") as f:
+            f.write(json.dumps(self.as_dict(state=False)))
+
+    def load(self):
+        self.alarms = {}
+        with open(self.storage, "r") as f:
+            alarm_dicts = json.loads(f.read())
+            for alarm_dict in alarm_dicts.values():
+                self.create(**alarm_dict)
+
+    def as_dict(self, state=True):
+        ret = {}
+        for aid, alarm in self.alarms.items():
+            ret[str(aid)] = alarm.as_dict(state=state)
+        return ret
 
     def create(self, hour, minute, days=None,
                daylight_mode=None, daylight_time=None,
@@ -41,8 +65,13 @@ class AlarmClockApp(App):
             aid = len(self.alarms)
         self.alarms[aid] = al
 
+        if self.auto_store:
+            self.store()
+
     def delete(self, aid):
         del self.alarms[aid]
+        if self.auto_store:
+            self.store()
 
     @property
     def ringing(self):

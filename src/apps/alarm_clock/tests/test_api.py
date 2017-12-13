@@ -8,6 +8,8 @@ from ..alarm_states import Disabled, Enabled
 
 
 class AlarmClockMock(AlarmClockApp):
+    auto_store = False
+
     def __init__(self, alarms=None, off=False, snooze=False):
         super().__init__()
         self.alarms = alarms if alarms is not None else {}

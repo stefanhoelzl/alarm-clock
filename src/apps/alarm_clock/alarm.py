@@ -6,7 +6,7 @@ class Alarm(StateMachine):
 
     def __init__(self, h=0, m=0, days=None,
                  daylight_mode=None, daylight_time=None,
-                 snooze_time=0):
+                 snooze_time=0, enabled=True):
         self.hour = h
         self.minute = m
         self.time = None
@@ -15,20 +15,27 @@ class Alarm(StateMachine):
         self.daylight_time = daylight_time
         self.snooze_time = snooze_time
         self.snooze_counter = 0
-        super().__init__(Enabled(self))
+        StateMachine.__init__(self,
+                              Enabled(self) if enabled else Disabled(self))
 
-    def as_dict(self):
-        return {
+    def as_dict(self, state=False):
+        dct = {
             "hour": self.hour,
             "minute": self.minute,
             "days": self.days,
             "daylight_mode": self.daylight_mode,
             "daylight_time": self.daylight_time,
             "snooze_time": self.snooze_time,
-            "daylight": self.daylight,
-            "ringing": self.ringing,
-            "snoozing": self.snoozing,
+            "enabled": self == Enabled
         }
+        if state:
+            dct.update({
+                "daylight": self.daylight,
+                "ringing": self.ringing,
+                "snoozing": self.snoozing,
+                "time_left": self.time_left
+            })
+        return dct
 
     @property
     def daylight(self):
