@@ -29,11 +29,11 @@ class AlarmClockApp(App):
         peripherials.switch.callback = self.off
 
     def create(self, hour, minute, days=None,
-               dl_mode=None, dl_time=None,
-               snooze=None):
+               daylight_mode=None, daylight_time=None,
+               snooze_time=None):
         al = Alarm(hour, minute, days=days,
-                   daylight_time=dl_time, daylight_mode=dl_mode,
-                   snooze_time=snooze)
+                   daylight_time=daylight_time, daylight_mode=daylight_mode,
+                   snooze_time=snooze_time)
         for aid in range(len(self.alarms)):
             if aid not in self.alarms:
                 break
