@@ -95,7 +95,7 @@ class HttpServer:
     async def dispatch(self, request):
         try:
             res = request.resource
-            content = request.content
+            content = ujson.loads(request.content)
             ret = await self.dispatcher(res, content)
             if isinstance(ret, bytes):
                 ret = ret.decode('ascii')
