@@ -52,10 +52,6 @@ class StateMachine:
 
     def transition(self, ev):
         new_state = self.state(ev)
-        if new_state != self.state:
-            print("[{}] {} > {}".format(ev.__class__.__name__,
-                                        self.state.__class__.__name__,
-                                        new_state.__class__.__name__))
         self.state = new_state
 
     def __eq__(self, other):
