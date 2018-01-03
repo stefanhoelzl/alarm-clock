@@ -1,5 +1,5 @@
 from .alarm_states import *
-
+from apps.ntp import NTP
 
 class Alarm(StateMachine):
     INITIAL_STATE = Enabled
@@ -15,8 +15,8 @@ class Alarm(StateMachine):
         self.daylight_time = daylight_time
         self.snooze_time = snooze_time
         self.snooze_counter = 0
-        StateMachine.__init__(self,
-                              Enabled(self) if enabled else Disabled(self))
+        init_state = Enabled if enabled else Disabled
+        StateMachine.__init__(self, initial_state=init_state(self))
 
     def as_dict(self, state=False):
         dct = {
@@ -42,8 +42,7 @@ class Alarm(StateMachine):
         if self == Daylight:
             daylight_time = self.daylight_time
             if self.daylight_mode:
-                daylight = (
-                           daylight_time - self.time_left) / daylight_time
+                daylight = (daylight_time - self.time_left) / daylight_time
                 return max(0.0, min(1.0, daylight))
         return 0
 
@@ -57,7 +56,9 @@ class Alarm(StateMachine):
 
     @property
     def time_left(self):
-        return self.time - time.time()
+        if self == Enabled:
+            return self.time - NTP.time()
+        return None
 
     def snooze(self):
         self.transition(Snooze())
@@ -72,4 +73,4 @@ class Alarm(StateMachine):
         self.transition(Disable())
 
     def update(self):
-        self.transition(Update(time.time()))
+        self.transition(Update(NTP.time()))
