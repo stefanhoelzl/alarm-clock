@@ -30,16 +30,16 @@ async def test_getAlarms():
                   daylight_mode=True, daylight_time=10)
     with patch("uaos.App.get_app", return_value=AlarmClockMock({aid: alarm})):
         alarms = (await get_alarms(""))
-    assert "123" in alarms
-    assert alarms["123"]['hour'] == 7
-    assert alarms["123"]['minute'] == 35
-    assert alarms["123"]['days'] == (1,2)
-    assert alarms["123"]['daylight_mode'] == True
-    assert alarms["123"]['daylight_time'] == 10
-    assert alarms["123"]['snooze_time'] == 50
-    assert alarms["123"]['daylight'] == 0
-    assert alarms["123"]['ringing'] is False
-    assert alarms["123"]['snoozing'] is False
+    assert alarms[0]['aid'] == 0
+    assert alarms[0]['hour'] == 7
+    assert alarms[0]['minute'] == 35
+    assert alarms[0]['days'] == (1,2)
+    assert alarms[0]['daylight_mode'] == True
+    assert alarms[0]['daylight_time'] == 10
+    assert alarms[0]['snooze_time'] == 50
+    assert alarms[0]['daylight'] == 0
+    assert alarms[0]['ringing'] is False
+    assert alarms[0]['snoozing'] is False
 
 
 @pytest.mark.asyncio

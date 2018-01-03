@@ -44,9 +44,12 @@ class TestNextTime:
     def test_sameDay_later(self):
         assert next_time(13, 0, current_time=time_()) == time_(1, 0)
 
+    def test_sameDay_later_withDays(self):
+        nt = next_time(13, 0, days=(0, 1, 2, 3, 4, 5, 6), current_time=time_())
+        assert nt == time_(1, 0)
+
     def test_sameDay_earlier_getsNextDay(self):
         assert next_time(11, 0, current_time=time_()) == time_(23, 0)
 
     def test_days(self):
         assert next_time(12, 0, days=(6,), current_time=time_()) == time_(48, 0)
-
