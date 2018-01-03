@@ -6,7 +6,7 @@ from apps import apify
 
 @apify.route(b"/alarm/all")
 async def get_alarms(content):
-    return App.get_app("AlarmClockApp").as_dict()
+    return App.get_app("AlarmClockApp").as_list()
 
 
 @apify.route(b"/alarm/off")
@@ -24,18 +24,18 @@ async def snooze(content):
 @apify.route(b"/alarm/disable")
 async def disable(aid):
     aid = int(aid)
-    App.get_app("AlarmClockApp").alarms[aid].disable()
+    App.get_app("AlarmClockApp").disable(aid)
     return b""
 
 
 @apify.route(b"/alarm/enable")
 async def enable(aid):
     aid = int(aid)
-    App.get_app("AlarmClockApp").alarms[aid].enable()
+    App.get_app("AlarmClockApp").enable(aid)
     return b""
 
 
-@apify.route(b"/alarm/new")
+@apify.route(b"/alarm/save")
 async def new(dct):
     App.get_app("AlarmClockApp").create(**dct)
     return b""
@@ -44,5 +44,5 @@ async def new(dct):
 @apify.route(b"/alarm/delete")
 async def delete(aid):
     aid = int(aid)
-    del App.get_app("AlarmClockApp").alarms[aid]
+    App.get_app("AlarmClockApp").delete(aid)
     return b""

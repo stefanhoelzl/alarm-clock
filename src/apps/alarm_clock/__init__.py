@@ -1,4 +1,5 @@
 import ujson as json
+import os
 
 from .alarm import Alarm
 from .api import *
@@ -24,57 +25,78 @@ class AlarmClockApp(App):
     requires = ['Apify', 'NTP']
 
     storage = "/storage/alarm_clock.json"
-    auto_store = True
 
     def __init__(self):
         super().__init__()
+        self.auto_store = True
         self.alarms = {}
+        self.load()
         self.loop = asyncio.get_event_loop()
         self.running_tasks = []
         peripherials.switch.callback = self.off
-        if self.auto_store:
-            self.load()
 
-    def store(self):
-        with open(self.storage, "w") as f:
-            f.write(json.dumps(self.as_dict(state=False)))
-
-    def load(self):
-        self.alarms = {}
-        try:
-            with open(self.storage, "r") as f:
-                alarm_dicts = json.loads(f.read())
-                for alarm_dict in alarm_dicts.values():
-                    self.create(**alarm_dict)
-        except:
-            pass
-
-    def as_dict(self, state=True):
-        ret = {}
+    def as_list(self, state=True):
+        ret = []
         for aid, alarm in self.alarms.items():
-            ret[str(aid)] = alarm.as_dict(state=state)
+            a = alarm.as_dict(state=state)
+            a["aid"] = aid
+            ret.append(a)
         return ret
+
+    def from_list(self, lst):
+        for a in lst:
+            self.create(**a)
 
     def create(self, hour, minute, days=None,
                daylight_mode=None, daylight_time=None,
-               snooze_time=None, enabled=True):
+               snooze_time=None, enabled=True, aid=None, **kwargs):
         al = Alarm(hour, minute, days=days,
                    daylight_time=daylight_time, daylight_mode=daylight_mode,
                    snooze_time=snooze_time, enabled=enabled)
-        for aid in range(len(self.alarms)):
-            if aid not in self.alarms:
-                break
+        if not aid:
+            for aid in range(len(self.alarms)):
+                if aid not in self.alarms:
+                    break
+            else:
+                aid = len(self.alarms)
         else:
-            aid = len(self.alarms)
+            aid = int(aid)
         self.alarms[aid] = al
 
         if self.auto_store:
             self.store()
 
+    def store(self):
+        lst = self.as_list(state=False)
+        js = json.dumps(lst)
+        with open(self.storage, "w") as f:
+            f.write(js)
+
+    def load(self):
+        auto_store = self.auto_store
+        self.auto_store = False
+
+        if "alarm_clock.json" in os.listdir("/storage"):
+            with open(self.storage, "r") as f:
+                js = f.read()
+            lst = json.loads(js)
+            if not isinstance(lst, list):
+                lst = []
+            self.from_list(lst)
+
+        self.auto_store = auto_store
+
     def delete(self, aid):
         del self.alarms[aid]
-        if self.auto_store:
-            self.store()
+        if self.auto_store: self.store()
+
+    def enable(self, aid):
+        self.alarms[aid].enable()
+        if self.auto_store: self.store()
+
+    def disable(self, aid):
+        self.alarms[aid].disable()
+        if self.auto_store: self.store()
 
     @property
     def ringing(self):
@@ -102,7 +124,8 @@ class AlarmClockApp(App):
         while True:
             for a in self.alarms.values():
                 a.update()
-            if self.ringing:
+            # if self.ringing:
+            if self.daylight:
                 self.loop.create_task(self.wait_for_snooze())
                 peripherials.indicator.on()
             else:
@@ -112,9 +135,11 @@ class AlarmClockApp(App):
 
     @singelton_task("SNOOZE")
     async def wait_for_snooze(self):
-        while (not peripherials.snooze_button.triggered) and self.ringing:
+        while (not peripherials.snooze_button.triggered) and self.daylight:
             await asyncio.sleep(0.1)
-        if self.ringing:
-            self.snooze()
+        #if self.ringing:
+        if self.daylight:
+            self.off()
+            # self.snooze()
 
 AlarmClockApp.register()
