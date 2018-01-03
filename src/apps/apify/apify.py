@@ -1,4 +1,5 @@
 import ujson
+import gc
 
 HTTP_STATUS_TEXT = {
     200: b"OK",
@@ -51,18 +52,15 @@ class HttpResponse(HttpStatusMixin):
                                      self.status_code,
                                      HTTP_STATUS_TEXT[self.status_code])
         content_length = b"Content-Length: %d" % len(self.content)
-        response = b"\\r\\n".join((header,
-                                   content_length,
-                                   b'',
-                                   self.content,
-                                   b'',
-                                   b''))
-        await writer.awrite(response)
+        response_parts = (header, content_length, b'', self.content)
+        for resp_part in response_parts:
+            await writer.awrite(resp_part + b"\\r\\n")
 
 
 class HttpRequest:
     @classmethod
     async def from_reader(cls, reader):
+
         method, resource, version = (await reader.readline()).strip().split()
         parameter = {}
         content = None
@@ -87,7 +85,7 @@ class HttpRequest:
 
 
 class HttpServer:
-    ALLOWED_METHODS = (b'POST',)
+    ALLOWED_METHODS = (b'POST', b'GET')
 
     def __init__(self, dispatcher):
         self.dispatcher = dispatcher
@@ -95,7 +93,9 @@ class HttpServer:
     async def dispatch(self, request):
         try:
             res = request.resource
-            content = ujson.loads(request.content)
+            content = None
+            if request.content:
+                content = ujson.loads(request.content)
             ret = await self.dispatcher(res, content)
             if isinstance(ret, bytes):
                 ret = ret.decode('ascii')
@@ -115,6 +115,9 @@ class HttpServer:
         else:
             response = await self.dispatch(request)
         await response.send(writer)
+        await reader.aclose()
+        await writer.aclose()
+        gc.collect()
 
 
 class Dispatcher:
