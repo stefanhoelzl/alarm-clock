@@ -1,4 +1,5 @@
 import time
+from apps.ntp import NTP
 
 LOCALTIME_IDX_YEAR = 0
 LOCALTIME_IDX_MONTH = 1
@@ -12,7 +13,7 @@ LOCALTIME_IDX_YEARDAY = 7
 
 def next_time(hour, minute, days=None, current_time=None):
     if current_time is None:
-        current_time = time.time()
+        current_time = NTP.time()
     t = list(time.localtime(current_time))
     t[LOCALTIME_IDX_HOUR] = hour
     t[LOCALTIME_IDX_MINUTE] = minute
@@ -23,10 +24,11 @@ def next_time(hour, minute, days=None, current_time=None):
         at = time.mktime(tuple(t))
     if days is not None:
         current_alarm_day = list(time.localtime(at))[LOCALTIME_IDX_WEEKDAY]
-        next_day = get_next_weekday(current_alarm_day, days)
-        diff = diff_between_weekdays(current_alarm_day, next_day)
-        t[LOCALTIME_IDX_DAY] += diff
-        at = time.mktime(tuple(t))
+        if not (current_alarm_day in days and at > current_time):
+            next_day = get_next_weekday(current_alarm_day, days)
+            diff = diff_between_weekdays(current_alarm_day, next_day)
+            t[LOCALTIME_IDX_DAY] += diff
+            at = time.mktime(tuple(t))
     return at
 
 
