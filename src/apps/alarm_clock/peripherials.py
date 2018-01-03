@@ -15,7 +15,7 @@ def deinit():
 
 
 class Daylight:
-    DEFAULT_KELVIN = 5300
+    DEFAULT_KELVIN = 2500
 
     @staticmethod
     def kelvin_to_rgb(kelvin):
