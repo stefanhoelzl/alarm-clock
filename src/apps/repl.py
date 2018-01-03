@@ -18,11 +18,15 @@ class Repl(App):
         while True:
             await asyncio.sleep(0.01)
             if CMD:
-                if CMD[0] == "exec":
-                    RET = exec(CMD[1])
-                elif CMD[0] == "eval":
-                    RET = eval(CMD[1])
-                CMD = None
+                try:
+                    if CMD[0] == "exec":
+                        RET = exec(CMD[1])
+                    elif CMD[0] == "eval":
+                        RET = eval(CMD[1])
+                except Exception as e:
+                    RET = repr(e)
+                finally:
+                    CMD = None
 
 Repl.register()
 
